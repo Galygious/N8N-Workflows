@@ -1,0 +1,322 @@
+{
+  "id": "7PnqkWkWiC0B3cLP",
+  "name": "Discord - Weekly Schedule",
+  "nodes": [
+    {
+      "parameters": {},
+      "id": "bd1a6211-fb6d-418e-baf4-d33647e2db1f",
+      "name": "Cron Trigger",
+      "type": "n8n-nodes-base.cron",
+      "typeVersion": 1,
+      "position": [
+        -736,
+        -96
+      ]
+    },
+    {
+      "parameters": {
+        "requestMethod": "DELETE",
+        "url": "={{ $('Edit Fields').item.json['Discord WehBook'] }}/messages/{{ $json['0'].value }}",
+        "responseFormat": "string",
+        "options": {}
+      },
+      "id": "fed89533-90b1-4de2-b091-5fe57b1cf771",
+      "name": "Delete Last Discord Message",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 1,
+      "position": [
+        160,
+        -176
+      ]
+    },
+    {
+      "parameters": {
+        "db_path": "={{ $vars.DBFILE }}",
+        "query": "SELECT value FROM MessageStore WHERE key = 'daily_question';\n"
+      },
+      "type": "n8n-nodes-sqlite3.sqliteNode",
+      "typeVersion": 1,
+      "position": [
+        -288,
+        -96
+      ],
+      "id": "fd5cc05c-c3c7-4772-95dd-b1876da8796a",
+      "name": "Sqlite Node"
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict",
+            "version": 2
+          },
+          "conditions": [
+            {
+              "id": "f48b0a1f-fad2-4436-aecf-d8153cc4801e",
+              "leftValue": "={{ $json['0'].value }}",
+              "rightValue": "",
+              "operator": {
+                "type": "string",
+                "operation": "notEmpty",
+                "singleValue": true
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.2,
+      "position": [
+        -64,
+        -96
+      ],
+      "id": "3ba968c2-46fb-4152-8ce4-f9e9fed3669a",
+      "name": "If"
+    },
+    {
+      "parameters": {
+        "db_path": "={{ $vars.DBFILE }}",
+        "query": "=INSERT INTO MessageStore (key, value)\nVALUES ('daily_question', '{{ $json.id }}')\nON CONFLICT(key) DO UPDATE SET value=excluded.value;"
+      },
+      "type": "n8n-nodes-sqlite3.sqliteNode",
+      "typeVersion": 1,
+      "position": [
+        1280,
+        -80
+      ],
+      "id": "e17a92bc-ffa5-4a8c-adbf-388b09cf5d24",
+      "name": "Sqlite Node1"
+    },
+    {
+      "parameters": {
+        "db_path": "={{ $vars.DBFILE }}",
+        "query": "DELETE FROM MessageStore WHERE key = 'daily_question';\n"
+      },
+      "type": "n8n-nodes-sqlite3.sqliteNode",
+      "typeVersion": 1,
+      "position": [
+        384,
+        -176
+      ],
+      "id": "8ebafb9f-62b8-4f3e-a01b-aa29f131b8d7",
+      "name": "Sqlite Node2"
+    },
+    {
+      "parameters": {
+        "operation": "getChannelStreamSchedule",
+        "broadcaster_id": "569010308"
+      },
+      "type": "n8n-nodes-twitch-comprehensive.twitch",
+      "typeVersion": 1,
+      "position": [
+        608,
+        -80
+      ],
+      "id": "bcc15d62-ce29-43f7-81df-4c6ba825ea37",
+      "name": "Twitch",
+      "credentials": {
+        "twitchApi": {
+          "id": "d9oQ5MmmdJEC9tHb",
+          "name": "Galygious"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "jsCode": "const data = $input.first().json;\nconst events = data.segments;\n\nconst now = new Date();\n\n// Set \"today at 00:00\" for start boundary\nconst startOfToday = new Date(now.getFullYear(), now.getMonth(), now.getDate());\n\n// Set \"end of day\" 7 days from now for end boundary\nconst endOfWindow = new Date(startOfToday);\nendOfWindow.setDate(endOfWindow.getDate() + 7);\nendOfWindow.setHours(23, 59, 59, 999);\n\nfunction formatEvent(evt) {\n  const start = new Date(evt.start_time);\n  const unix = Math.floor(start.getTime() / 1000); // Discord timestamp in seconds\n  return `• <t:${unix}:F> – **${evt.category.name}** – ${evt.title}`;\n}\n\n// Filter: events happening in the next 7 days (whole days)\nconst filteredEvents = events.filter(evt => {\n  const start = new Date(evt.start_time);\n  return start >= startOfToday && start <= endOfWindow;\n});\n\nconst discordMessage =\n  \"📅 **This Week's Twitch Schedule**\\n\\n\" +\n  (filteredEvents.length > 0\n    ? filteredEvents.map(formatEvent).join(\"\\n\")\n    : \"No events scheduled this week.\");\n\nreturn { content: discordMessage };\n"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        832,
+        -80
+      ],
+      "id": "3a2c00d0-4ac1-47bf-a208-9ba1f16f09dc",
+      "name": "Code in JavaScript"
+    },
+    {
+      "parameters": {
+        "requestMethod": "POST",
+        "url": "={{ $('Edit Fields').item.json['Discord WehBook'] }}",
+        "options": {},
+        "bodyParametersUi": {
+          "parameter": [
+            {
+              "name": "content",
+              "value": "={{ $json.content }}"
+            }
+          ]
+        },
+        "queryParametersUi": {
+          "parameter": [
+            {
+              "name": "wait",
+              "value": "true"
+            }
+          ]
+        }
+      },
+      "id": "ec99d5be-2ed9-4d8b-ab06-4423e45c199d",
+      "name": "Send Discord Message",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 1,
+      "position": [
+        1056,
+        -80
+      ]
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "f49480ae-1df9-4666-9a13-deb3e7c1dc7b",
+              "name": "Discord WehBook",
+              "value": "={{ $vars.DISCORDWH_SCHEDULE }}",
+              "type": "string"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        -512,
+        -96
+      ],
+      "id": "fa92f903-45b3-4b1f-8a46-d3978f8a38ef",
+      "name": "Edit Fields"
+    }
+  ],
+  "connections": {
+    "Cron Trigger": {
+      "main": [
+        [
+          {
+            "node": "Edit Fields",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Delete Last Discord Message": {
+      "main": [
+        [
+          {
+            "node": "Sqlite Node2",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Sqlite Node": {
+      "main": [
+        [
+          {
+            "node": "If",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "If": {
+      "main": [
+        [
+          {
+            "node": "Delete Last Discord Message",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Twitch",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Sqlite Node2": {
+      "main": [
+        [
+          {
+            "node": "Twitch",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Sqlite Node1": {
+      "main": [
+        []
+      ]
+    },
+    "Twitch": {
+      "main": [
+        [
+          {
+            "node": "Code in JavaScript",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Code in JavaScript": {
+      "main": [
+        [
+          {
+            "node": "Send Discord Message",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Send Discord Message": {
+      "main": [
+        [
+          {
+            "node": "Sqlite Node1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Edit Fields": {
+      "main": [
+        [
+          {
+            "node": "Sqlite Node",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "settings": {
+    "executionOrder": "v1"
+  },
+  "triggerCount": 1,
+  "versionId": "dd5f41c9-549c-415e-a488-ca7355d6fbb3",
+  "owner": {
+    "type": "personal",
+    "projectId": "c6TLSbFplxrsz7qE",
+    "projectName": "Bryon Hughes <info@itsplanb.us>",
+    "personalEmail": "info@itsplanb.us"
+  },
+  "parentFolderId": null,
+  "isArchived": false
+}

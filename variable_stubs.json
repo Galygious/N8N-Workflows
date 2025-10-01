@@ -1,0 +1,44 @@
+[
+  {
+    "id": "sro6BedYLvEXAOmY",
+    "key": "DBFILE",
+    "type": "string",
+    "value": ""
+  },
+  {
+    "id": "mYFddUaZcIl17AfB",
+    "key": "Twitch",
+    "type": "string",
+    "value": ""
+  },
+  {
+    "id": "NldFRGUw1B9wvOfm",
+    "key": "DISCORDWH",
+    "type": "string",
+    "value": ""
+  },
+  {
+    "id": "dipMMPLqJbaxEm6p",
+    "key": "DISCORDWH_TEST",
+    "type": "string",
+    "value": ""
+  },
+  {
+    "id": "5CLCZkKSU13Kr9vg",
+    "key": "DISCORDWH_Galy",
+    "type": "string",
+    "value": ""
+  },
+  {
+    "id": "1SFNFvZ5nWphTLgx",
+    "key": "DISCORDWH_SCHEDULE",
+    "type": "string",
+    "value": ""
+  },
+  {
+    "id": "xow8jmkWTxJhqgj3",
+    "key": "DISCORDWH_LIVE",
+    "type": "string",
+    "value": ""
+  }
+]
