@@ -1,0 +1,124 @@
+{
+  "id": "EcvHf0I0CyTARb3u",
+  "name": "Discord - Question of the Day",
+  "nodes": [
+    {
+      "parameters": {
+        "triggerTimes": {
+          "item": [
+            {
+              "hour": 11
+            }
+          ]
+        }
+      },
+      "name": "Schedule Trigger",
+      "type": "n8n-nodes-base.cron",
+      "typeVersion": 1,
+      "position": [
+        -688,
+        -112
+      ],
+      "id": "baa96633-31d0-4c3c-bb53-e763a546b005"
+    },
+    {
+      "parameters": {
+        "authentication": "webhook",
+        "content": "=# ⏳ Question of the Day:\n{{ $('Sqlite Node').item.json['0'].question }}",
+        "options": {
+          "wait": true
+        }
+      },
+      "type": "n8n-nodes-base.discord",
+      "typeVersion": 2,
+      "position": [
+        -16,
+        -16
+      ],
+      "id": "f79dcf39-7fa3-442a-8be2-9d385b5f0eb6",
+      "name": "Discord",
+      "webhookId": "1529f5bb-516a-43b4-b125-7fc903f00009",
+      "credentials": {
+        "discordWebhookApi": {
+          "id": "o3V9UVkIr1pkZbOV",
+          "name": "Discord Production Environment Webhook"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "db_path": "={{$vars.DBFILE}}",
+        "query": "SELECT *\nFROM questions\nWHERE used = 0 AND approved = 1\nORDER BY RANDOM()\nLIMIT 1;"
+      },
+      "type": "n8n-nodes-sqlite3.sqliteNode",
+      "typeVersion": 1,
+      "position": [
+        -464,
+        -112
+      ],
+      "id": "99967c5d-fdfd-4b9b-9c38-3246a2d70643",
+      "name": "Sqlite Node"
+    },
+    {
+      "parameters": {
+        "db_path": "={{ $vars.DBFILE }}",
+        "query": "=UPDATE questions\nSET used = 1\nWHERE id = {{ $json['0'].id }}"
+      },
+      "type": "n8n-nodes-sqlite3.sqliteNode",
+      "typeVersion": 1,
+      "position": [
+        -16,
+        -208
+      ],
+      "id": "351c270d-17db-4f12-a983-f94d6fe782af",
+      "name": "Sqlite Node1"
+    }
+  ],
+  "connections": {
+    "Schedule Trigger": {
+      "main": [
+        [
+          {
+            "node": "Sqlite Node",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Sqlite Node": {
+      "main": [
+        [
+          {
+            "node": "Sqlite Node1",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "Discord",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Sqlite Node1": {
+      "main": [
+        []
+      ]
+    }
+  },
+  "settings": {
+    "executionOrder": "v1"
+  },
+  "triggerCount": 1,
+  "versionId": "4e308622-c222-4959-89af-90c5d73b2f1a",
+  "owner": {
+    "type": "personal",
+    "projectId": "c6TLSbFplxrsz7qE",
+    "projectName": "Bryon Hughes <info@itsplanb.us>",
+    "personalEmail": "info@itsplanb.us"
+  },
+  "parentFolderId": null,
+  "isArchived": false
+}
